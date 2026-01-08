@@ -16,7 +16,7 @@ services:
         depends_on:
         - psql
     psql:
-        container_name: psql
+        container_name: apiservice-psql
         image: postgres:17-alpine
         volumes:
         - ./data/postgres/data:/var/lib/postgresql/data/
