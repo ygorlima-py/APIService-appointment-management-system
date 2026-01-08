@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
     djangoapp:
-        container_name: djangoapp
+        container_name: apiservice_djangoapp
         build:
             context: .
         ports:
