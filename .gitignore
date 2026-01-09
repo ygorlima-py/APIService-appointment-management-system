@@ -8,8 +8,9 @@ db.sqlite3
 /djangoapp/media/
 /djangoapp/project/local_settings.py
 /data/
-# Backup files # 
-*.bak 
+
+# Logs
+/logs
 
 # If you are using PyCharm # 
 # User-specific stuff

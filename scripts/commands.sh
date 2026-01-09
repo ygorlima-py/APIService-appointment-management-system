@@ -7,4 +7,5 @@ wait_psql.sh
 collectstatic.sh
 makemigrations.sh
 migrate.sh
+authorizations.sh
 runserver.sh

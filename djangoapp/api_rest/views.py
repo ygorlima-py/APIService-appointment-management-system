@@ -5,7 +5,7 @@ from .models import Customer, Appointment
 from .serializers import CustomerSerializer, AppointmentSerializer
 from django.db.models import Q, Count, Sum
 from datetime import date as date_cls
-
+from rest_framework import status
 
 # POST /api/customers/
 # GET /api/customers/ (List using search terms like ?q= by full_name/phone/email)

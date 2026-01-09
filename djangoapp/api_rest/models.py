@@ -26,6 +26,7 @@ class Customer(models.Model):
         max_length=100,
         null=False,
         blank=False,
+        unique=True,
     )
     
     notes = models.TextField(

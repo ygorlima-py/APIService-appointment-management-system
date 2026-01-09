@@ -1,5 +1,6 @@
 from rest_framework import serializers 
 from .models import Customer, Appointment
+from django.core.exceptions import ValidationError
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,6 +12,18 @@ class AppointmentSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = "__all__"
 
+    def create(self, validated_data):
+        try:
+            return super().create(validated_data)
+        except ValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+    
+    def update(self, validated_data):
+        try:
+            return super().create(validated_data)
+        except ValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+        
     def validate(self, attrs):
         new_start_date = attrs.get("start_at")
         new_end_date = attrs.get("end_at")
@@ -19,7 +32,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         # (If it's a patch, retrieve current values ​​when they're not included in the payload)
         if self.instance:
             new_start_date = new_start_date or self.instance.start_at
-            new_end_date = new_end_date or self.instance.end_t
+            new_end_date = new_end_date or self.instance.end_at
             location = location or self.instance.location 
 
         conflict = (
