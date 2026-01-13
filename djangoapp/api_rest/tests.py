@@ -8,7 +8,7 @@ from rest_framework import status
 
 class TestCustomer(APITestCase):
     def setUp(self): 
-        self.url = "/api/customers/"
+        self.url = "/api/customer/"
 
         self.customer = Customer.objects.create(
             full_name="Roberto Usuario Teste",
@@ -114,7 +114,7 @@ class TestAppointments(APITestCase):
             end_at=end_existing,
             status="SCHEDULED",
             price=60.00,
-            paiment_method="TRANSFER",
+            payment_method="TRANSFER",
         )
 
     def test_overlap_detect_conflict_between_appointments(self):
@@ -135,7 +135,7 @@ class TestAppointments(APITestCase):
             end_at=new_end.isoformat(),
             status="SCHEDULED",
             price=95.00,
-            paiment_method="PIX",
+            payment_method="PIX",
         )
 
         response = self.client.post(
@@ -167,7 +167,7 @@ class TestAppointments(APITestCase):
             end_at=new_end.isoformat(),
             status="SCHEDULED",
             price=95.00,
-            paiment_method="PIX",
+            payment_method="PIX",
         )
 
         response = self.client.post(
@@ -226,7 +226,7 @@ class TestAppointments(APITestCase):
             end_at=end.isoformat(),
             status="SCHEDULED",
             price=95.00,
-            paiment_method="PIX",
+            payment_method="PIX",
         )
 
     
@@ -269,7 +269,7 @@ class TestDashboard(APITestCase):
             end_at=end,
             status="SCHEDULED",
             price=60.00,
-            paiment_method="TRANSFER",
+            payment_method="TRANSFER",
         )
 
     def test_with_date_format_iso(self):

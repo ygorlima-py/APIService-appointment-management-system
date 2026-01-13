@@ -68,9 +68,9 @@ MIDDLEWARE = [
 ]
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Minha API",
-    "DESCRIPTION": "Docs da API",
-    "VERSION": "1.0.0",
+    "TITLE": "Appointment Management API",
+    "DESCRIPTION": "API documentation",
+    "VERSION": "1.1.0",
 }
 
 ROOT_URLCONF = 'project.urls'

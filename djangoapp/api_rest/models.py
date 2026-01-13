@@ -99,7 +99,7 @@ class Appointment(models.Model):
         max_digits=10,
     )
 
-    paiment_method = models.CharField(choices=Payment.choices)
+    payment_method = models.CharField(choices=Payment.choices)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
