@@ -1,4 +1,6 @@
 from django.db import models
+import uuid
+
 from django.core.exceptions import ValidationError
 
 # Create your models here.
@@ -116,4 +118,21 @@ class Appointment(models.Model):
 
     def __str__(self) -> str:
         return self.service_name
+
+class UserPayment(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
+    stripe_customer_id = models.CharField(max_length=255)
+    stripe_checkout_id = models.CharField(max_length=255)
+    stripe_product_id = models.CharField(max_length=255)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    amount_cents = models.IntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3)
+    has_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"{self.customer.full_name} - {self.appointment.service_name} - Pago {self.has_paid}"
+
 

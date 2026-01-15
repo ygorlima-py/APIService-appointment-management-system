@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Customer, Appointment
+from .models import Customer, Appointment, UserPayment
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
@@ -9,4 +9,9 @@ class CustomerAdmin(admin.ModelAdmin):
 @admin.register(Appointment)
 class AppoinmentAdmin(admin.ModelAdmin):
     list_display = "service_name",
+    ordering = "-created_at",
+
+@admin.register(UserPayment)
+class UserPaymentAdmin(admin.ModelAdmin):
+    list_display = "customer", "appointment", "has_paid",
     ordering = "-created_at",

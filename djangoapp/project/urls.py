@@ -18,10 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django.conf import settings 
+from api_rest.webhooks import stripe_webhook
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api_rest.urls'), name="api_rest_urls"),
+    path("stripe/webhook/", stripe_webhook,  name="stripe-webhook"),
 ]
 
 if settings.DEBUG:

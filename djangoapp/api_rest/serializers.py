@@ -1,5 +1,5 @@
 from rest_framework import serializers 
-from .models import Customer, Appointment
+from .models import Customer, Appointment, UserPayment
 from django.core.exceptions import ValidationError
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -52,4 +52,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
         return attrs
     
+class CheckoutSessionSerializer(serializers.Serializer):
+    appointment_id = serializers.IntegerField(help_text="ID do agendamento para pagamento")
+
     

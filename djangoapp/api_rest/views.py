@@ -1,11 +1,16 @@
 from rest_framework.response import Response 
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView #type:ignore
 from rest_framework.views import APIView
-from .models import Customer, Appointment
-from .serializers import CustomerSerializer, AppointmentSerializer
+from django.views import View
+from django.http import HttpResponse
+from .models import Customer, Appointment, UserPayment
+from .serializers import CustomerSerializer, AppointmentSerializer, CheckoutSessionSerializer
 from django.db.models import Q, Count, Sum
 from datetime import date as date_cls
 from rest_framework import status
+from drf_spectacular.utils import extend_schema
+import stripe
+from django.conf import settings
 
 # POST /api/customers/
 # GET /api/customers/ (List using search terms like ?q= by full_name/phone/email)
@@ -112,4 +117,61 @@ class DashbordsView(APIView):
 
         return Response(result)
     
+class CreateCheckoutSession(APIView):
 
+    @extend_schema(request=CheckoutSessionSerializer)
+    def post(self, request):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        appointment_id = request.data["appointment_id"]
+        
+        # Gey appointment by id
+        appointment = Appointment.objects.get(id=appointment_id)
+
+        # Get cutomer create appointmenr
+        customer = appointment.customer
+
+        # Crete page in stripe for payment
+        session = stripe.checkout.Session.create(
+            mode="payment",
+            line_items=[
+                {
+                    "price_data": {
+                        "currency":"brl",
+                        "product_data": {"name": appointment.service_name},
+                        "unit_amount": int(appointment.price * 100),       
+                    }, 
+                    "quantity": 1,
+                }
+            ],
+            success_url=request.build_absolute_uri("/success/"),
+            cancel_url=request.build_absolute_uri("/cancel/"),
+        )
+
+        # Save local register talking "I started payment"
+        payment = UserPayment.objects.create(
+            customer=customer,
+            appointment=appointment,
+            stripe_customer_id="",
+            stripe_checkout_id=session["id"],
+            stripe_product_id="",
+            amount_cents=int(appointment.price * 100),
+            price=appointment.price,
+            currency="brl",
+            has_paid=False,
+        )
+
+        return Response(
+            {
+                "checkout_url": session["url"],
+                "payment_id": payment.id,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+    
+class SuccessView(View):
+    def get(self, request):
+        return HttpResponse("Pagamento concluído com sucesso, você pode voltar ao app")
+    
+class CancelView(View):
+    def get(self, request):
+        return HttpResponse("Pagamento cancelado")
