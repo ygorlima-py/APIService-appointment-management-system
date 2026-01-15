@@ -20,7 +20,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
     
     def update(self, validated_data):
         try:
-            return super().create(validated_data)
+            return super().update(validated_data)
         except ValidationError as e:
             raise serializers.ValidationError(e.message_dict)
         
