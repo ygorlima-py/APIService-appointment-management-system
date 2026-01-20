@@ -1,7 +1,9 @@
 from django.db import models
 import uuid
-
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # Create your models here.
 class Customer(models.Model):
@@ -24,100 +26,61 @@ class Customer(models.Model):
         unique=True,
     )
 
-    id_document = models.CharField(
-        max_length=100,
-        null=False,
-        blank=False,
-        unique=True,
-    )
-    
-    notes = models.TextField(
-        max_length=500,
-        null=True,
-        blank=True,
-    )
-
-    is_active = models.BooleanField(default=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"{self.full_name}"
     
+class Establishment(models.Model):
+    name = models.CharField(max_length=255, blank=False, null=False)
+    cnpj = models.CharField(max_length=30, blank=False, null=False)
+    cep = models.CharField(max_length=8, blank=True, null=True)
+    city = models.CharField(max_length=255)
+    state = models.CharField(max_length=50)
+    adress = models.CharField(max_length=255)
+    number = models.CharField(max_length=10)
+    phone = models.CharField(max_length=25)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="establishments")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
 
+    def __str__(self) -> str:
+        return f"{self.name}"
+    
 class Appointment(models.Model):
     
     class Status(models.TextChoices):
-        SCHEDULED = "SCHEDULED", "Scheduled"
-        CONFIRMED = "CONFIRMED", "Confirmed"
-        CANCELED = "CANCELED", "Canceled"
-        DONE = "DONE", "Done"
+        SCHEDULED = "SCHEDULED", "Agendado"
+        CONFIRMED = "CONFIRMED", "Confirmado"
+        CANCELED = "CANCELED", "Cancelado"
 
     class Payment(models.TextChoices):
-        CASH = "CASH", "Cash"
         PIX = "PIX", "Pix"
-        CARD = "CARD", "Card"
-        TRANSFER = "TRANSFER", "Transfer"
+        CARD = "CARD", "Cartão de crédito"
     
-    class Units(models.TextChoices):
-        UNIT_1 = 'UNIT-1', "Unit 1"
-        UNIT_2 = 'UNIT-2', "Unit 2"
-        UNIT_3 = 'UNIT-3', "Unit 3"
-        UNIT_4 = 'UNIT-4', "Unit 4"
-
-
     customer = models.ForeignKey(
             Customer,
             on_delete=models.CASCADE,
-            related_name="Appoinments",
-            )
-    
-    service_name = models.CharField(
-        max_length=255,
-        null=False,
-        blank=False,
-    )
-
-    location = models.CharField(
-                choices=Units.choices,
-                blank=True,
-                default="UNIT-1",
-                )
-
-    start_at = models.DateTimeField(
-        null=True,
-        blank=True, 
-    )
-
-    end_at = models.DateTimeField(
-        null=True,
-        blank=True, 
-    )
-
+            related_name="appoinments",
+            )    
+    location = models.ForeignKey(
+        Establishment,
+        on_delete=models.CASCADE,
+        related_name="appointments"
+        )  
+    start_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(choices=Status.choices)
-
-    price = models.DecimalField(
-        decimal_places=2,
-        max_digits=10,
-    )
-
+    price = models.DecimalField(decimal_places=2, max_digits=10)
     payment_method = models.CharField(choices=Payment.choices)
-
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def clean(self):
-        if self.end_at <= self.start_at:
-            raise ValidationError("The end date must not be later than the start date.")
-        
-        if not self.customer.is_active:
-            raise ValidationError("This client is inactive; no services can be scheduled for them.")
+    updated_at = models.DateTimeField(auto_now=True)
+    observation = models.TextField(max_length=500, null=True, blank=True)
+    number_people = models.IntegerField(default=1)
 
     def save(self, *args, **kwargs):
         self.full_clean() # > call all verify
         return super().save(*args, **kwargs)
-
-    def __str__(self) -> str:
-        return self.service_name
 
 class UserPayment(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -133,6 +96,4 @@ class UserPayment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return f"{self.customer.full_name} - {self.appointment.service_name} - Pago {self.has_paid}"
-
-
+        return f"{self.customer.full_name} - Pago {self.has_paid}"
