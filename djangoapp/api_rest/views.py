@@ -32,10 +32,7 @@ DOMAIN = os.getenv("DOMAIN")
 
 class RegisterUser(APIView):
     serializer_class = UserRegistrationSerializer
-    def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return [permissions.AllowAny(),]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [AllowAny]
 
 
     # Create Refresh token
