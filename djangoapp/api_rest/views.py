@@ -1,5 +1,5 @@
 from rest_framework.response import Response 
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, ListAPIView, RetrieveUpdateAPIView #type:ignore
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, ListAPIView, RetrieveUpdateAPIView, UpdateAPIView#type:ignore
 from rest_framework.views import APIView
 from django.views.generic import TemplateView
 from rest_framework import permissions
@@ -52,7 +52,7 @@ class RegisterUser(APIView):
         serializer = UserRegistrationSerializer(request.user)
         return Response(serializer.data)
 
-class UpdateUser(RetrieveUpdateDestroyAPIView):
+class UpdateUser(UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UpdateUserSerializers
     permission_classes = [IsAuthenticated]
@@ -60,11 +60,6 @@ class UpdateUser(RetrieveUpdateDestroyAPIView):
     def get_object(self):
         return self.request.user
     
-    def patch(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response(self.get_serializer(user).data)
 
 class UserTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
@@ -261,8 +256,8 @@ class CreateCheckoutSession(APIView):
                     "quantity": 1,
                 }
             ],
-            success_url=f"http://{DOMAIN}/api/success",
-            cancel_url=f"http://{DOMAIN}/api/cancel",
+            success_url=f"{DOMAIN}/api/success",
+            cancel_url=f"{DOMAIN}/api/cancel",
         )
 
 
