@@ -28,8 +28,8 @@ urlpatterns = [
     path("stripe/webhook/", stripe_webhook,  name="stripe-webhook"),
 ]
 
-if settings.DEBUG:
-    urlpatterns += [
+# if settings.DEBUG:
+urlpatterns += [
     # Schema (JSON)
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
 
