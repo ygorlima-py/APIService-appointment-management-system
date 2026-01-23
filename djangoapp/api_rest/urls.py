@@ -5,6 +5,7 @@ app_name = 'api_rest'
 
 urlpatterns = [
     path('register/', views.RegisterUser.as_view(), name='register'),
+    path('update_user/', views.UpdateUser.as_view(), name='update_user'),
 
     # URL For customera www.yourdomain.com/api/customer
     path('customer/', views.Customers.as_view(), name='customers'),

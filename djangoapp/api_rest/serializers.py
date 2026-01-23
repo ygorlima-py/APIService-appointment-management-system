@@ -49,8 +49,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
-    password_confirm = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8,)
+    password_confirm = serializers.CharField(write_only=True,)
 
     class Meta:
         model = User
@@ -64,7 +64,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
-        if data["password"] != data["password_confirm"]:
+        password = data.get('password')
+        password_confirm = data.get('password_confirm')
+     
+        if not password or not password_confirm:
+            raise serializers.ValidationError({
+                'message': 'Senha é obrigatória'
+            })
+
+        if password != password_confirm:
             raise serializers.ValidationError({"password": "As senhas não coencidem"})
         return data
     
@@ -74,6 +82,49 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
         user = User.objects.create_user(**validated_data, password=password)
         return user 
+    
+class UpdateUserSerializers(serializers.ModelSerializer):
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
+    username = serializers.CharField(required=False)
+    email = serializers.CharField(required=False)
+    password = serializers.CharField(write_only=True, min_length=8, required=False)
+    password_confirm = serializers.CharField(write_only=True, required=False)
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'email', 'password', 'password_confirm']
+
+    def validate(self, data):
+        password = data.get('password')
+        password_confirm = data.get('password_confirm')
+        # Trata string vazia como "não enviado"
+        if password == "":
+            password = None
+            data['password'] = None
+
+        if password_confirm == "":
+            password_confirm = None
+            data['password_confirm'] = None
+
+        # Atualização: só valide se algum foi enviado
+        if password or password_confirm:
+            if not password or not password_confirm:
+                raise serializers.ValidationError({'password': 'Envie password e password_confirm'})
+            if password != password_confirm:
+                raise serializers.ValidationError({'password': 'As senhas não coincidem'})
+
+        return data
+    
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        validated_data.pop('password_confirm', None)
+        instance = super().update(instance, validated_data)
+        if password:
+            instance.set_password(password)
+            instance.save()
+        return instance
+
 
 class RegisterEstablishmentSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())

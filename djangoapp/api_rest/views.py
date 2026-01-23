@@ -1,5 +1,5 @@
 from rest_framework.response import Response 
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, ListAPIView #type:ignore
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, ListAPIView, RetrieveUpdateAPIView #type:ignore
 from rest_framework.views import APIView
 from django.views.generic import TemplateView
 from rest_framework import permissions
@@ -10,7 +10,8 @@ from .models import Customer, Appointment, UserPayment, Establishment
 from .serializers import (CustomerSerializer,
                         AppointmentSerializer,
                         UserRegistrationSerializer,
-                        RegisterEstablishmentSerializer
+                        RegisterEstablishmentSerializer,
+                        UpdateUserSerializers
                         )
 from django.db.models import Q, Count, Sum
 from datetime import date as date_cls
@@ -26,23 +27,44 @@ from .services.send_email import send_email
 from decimal import Decimal, ROUND_HALF_UP
 import os
 
+User = get_user_model()
 DOMAIN = os.getenv("DOMAIN")
 
-class RegisterUser(CreateAPIView):
-    model = get_user_model()
-    permission_classes = [
-        permissions.AllowAny # Or anon users can't register
-    ]
+class RegisterUser(APIView):
     serializer_class = UserRegistrationSerializer
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny(),]
+        return [permissions.IsAuthenticated()]
+
 
     # Create Refresh token
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        user = get_user_model().objects.get(email=response.data["email"])
+    def post(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         refresh = RefreshToken.for_user(user)
-        response.data['refresh'] = str(refresh)
-        response.data['access'] = str(refresh.access_token)
+        data = UserRegistrationSerializer(user).data
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
         return response
+    
+    def get(self, request):
+        serializer = UserRegistrationSerializer(request.user)
+        return Response(serializer.data)
+
+class UpdateUser(RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UpdateUserSerializers
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+    
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(self.get_serializer(user).data)
 
 class UserTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
@@ -266,9 +288,7 @@ class CreateCheckoutSession(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
-
-       
-    
+ 
 class SuccessView(TemplateView):
     template_name = "success_checkout.html"
 
