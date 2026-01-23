@@ -39,11 +39,12 @@ class RegisterUser(APIView):
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        user = serializer.save()
         refresh = RefreshToken.for_user(user)
         data = UserRegistrationSerializer(user).data
         data['refresh'] = str(refresh)
         data['access'] = str(refresh.access_token)
-        return response
+        return Response(data, status=status.HTTP_201_CREATED)
     
     def get(self, request):
         serializer = UserRegistrationSerializer(request.user)
