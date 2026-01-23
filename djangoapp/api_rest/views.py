@@ -1,6 +1,7 @@
 from rest_framework.response import Response 
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, ListAPIView #type:ignore
 from rest_framework.views import APIView
+from django.views.generic import TemplateView
 from rest_framework import permissions
 from django.contrib.auth import get_user_model 
 from django.views import View
@@ -8,7 +9,6 @@ from django.http import HttpResponse
 from .models import Customer, Appointment, UserPayment, Establishment
 from .serializers import (CustomerSerializer,
                         AppointmentSerializer,
-                        CheckoutSessionSerializer,
                         UserRegistrationSerializer,
                         RegisterEstablishmentSerializer
                         )
@@ -22,6 +22,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from .services.send_email import send_email
+from decimal import Decimal, ROUND_HALF_UP
+import os
+
+DOMAIN = os.getenv("DOMAIN")
 
 class RegisterUser(CreateAPIView):
     model = get_user_model()
@@ -201,16 +206,23 @@ class DashbordsView(APIView):
     
 class CreateCheckoutSession(APIView):
 
-    @extend_schema(request=CheckoutSessionSerializer)
-    def post(self, request):
+    def get(self, request, pk):   
         stripe.api_key = settings.STRIPE_SECRET_KEY
-        appointment_id = request.data["appointment_id"]
         
-        # Gey appointment by id
-        appointment = Appointment.objects.get(id=appointment_id)
+        try:
+            appointment = Appointment.objects.get(id=pk)
 
-        # Get cutomer create appointmenr
+        except Appointment.DoesNotExist:
+            raise status.HTTP_404_NOT_FOUND
+        
+        if UserPayment.objects.filter(appointment=appointment).exists():
+            return Response({
+                'message': 'este agendamento ja foi enviado para pagamento. Solicite ao cliente para verificar sua caixa de email',
+            })
+
+        # Get cutomer create appointment
         customer = appointment.customer
+        unit_amount = int((Decimal(str(appointment.price)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
         # Crete page in stripe for payment
         session = stripe.checkout.Session.create(
@@ -219,15 +231,18 @@ class CreateCheckoutSession(APIView):
                 {
                     "price_data": {
                         "currency":"brl",
-                        "product_data": {"name": appointment.service_name},
-                        "unit_amount": int(appointment.price * 100),       
+                        "product_data": {
+                            "name": f"Reserva em {appointment.location.name} em nome de {appointment.customer.full_name}",
+                            },
+                        "unit_amount": unit_amount,       
                     }, 
                     "quantity": 1,
                 }
             ],
-            success_url=request.build_absolute_uri("/success/"),
-            cancel_url=request.build_absolute_uri("/cancel/"),
+            success_url=f"http://{DOMAIN}/api/success",
+            cancel_url=f"http://{DOMAIN}/api/cancel",
         )
+
 
         # Save local register talking "I started payment"
         payment = UserPayment.objects.create(
@@ -236,27 +251,29 @@ class CreateCheckoutSession(APIView):
             stripe_customer_id="",
             stripe_checkout_id=session["id"],
             stripe_product_id="",
-            amount_cents=int(appointment.price * 100),
+            amount_cents=int(unit_amount),
             price=appointment.price,
             currency="brl",
             has_paid=False,
         )
 
+        url_checkout_stripe = session["url"]
+        send_email(url_checkout_stripe, appointment.id)
+
         return Response(
             {
-                "checkout_url": session["url"],
-                "payment_id": payment.id,
+                "message": f'Pagamento enviado com sucesso. Solicite ao seu cliente que verifique sua caixa de email',
             },
             status=status.HTTP_201_CREATED,
         )
+
+       
     
-class SuccessView(View):
-    def get(self, request):
-        return HttpResponse("Pagamento concluído com sucesso, você pode voltar ao app")
-    
-class CancelView(View):
-    def get(self, request):
-        return HttpResponse("Pagamento cancelado")
+class SuccessView(TemplateView):
+    template_name = "success_checkout.html"
+
+class CancelView(TemplateView):
+    template_name = "cancel_checkout.html"
     
 class RegisterEstablishment(ListCreateAPIView):
     serializer_class = RegisterEstablishmentSerializer

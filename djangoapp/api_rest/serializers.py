@@ -13,7 +13,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 class AppointmentSerializer(serializers.ModelSerializer):
     status = serializers.CharField(default="SCHEDULED")
     status_label = serializers.CharField(source="get_status_display", read_only=True)
-    customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), write_only=True, source="customer")
+    customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), write_only=True, source="customer", required=False)
     customer_name = serializers.CharField(source="customer.full_name", read_only=True)
     location_name = serializers.CharField(source="location.name", read_only=True)
     payment_method_label = serializers.CharField(source="get_payment_method_display", read_only=True)
@@ -43,14 +43,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
         return super().create(validated_data)
     
-    def update(self, validated_data):
+    def update(self, instance, validated_data):
         customer_data = validated_data.pop('customer', None)
                 
-        return super().update(validated_data)
-
-   
-class CheckoutSessionSerializer(serializers.Serializer):
-    appointment_id = serializers.IntegerField(help_text="ID do agendamento para pagamento")
+        return super().update(instance, validated_data)
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)

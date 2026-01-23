@@ -156,14 +156,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # /data/web/static
 STATIC_ROOT = DATA_DIR / 'static'
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 # /data/web/media
 MEDIA_ROOT = DATA_DIR / 'media'
+
 
 
 # Default primary key field type
@@ -180,6 +181,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
     "http://localhost:5501",
+    "http://127.0.0.1:5501", 
 ]
 
 CORS_ALLOW_ALL_ORIGINS = False
@@ -195,3 +197,12 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_SECURE': True if not DEBUG else False,  # Secure em produção (HTTPS), False em localhost (HTTP)
     'AUTH_COOKIE_SAMESITE': 'Lax',  # Ou 'Strict' para mais segurança
 }
+
+# Settings e-mail
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")

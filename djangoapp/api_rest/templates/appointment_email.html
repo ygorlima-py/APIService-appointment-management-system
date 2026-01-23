@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmação de Reserva</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6fb;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f6fb; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(180deg, #111827 0%, #1f2937 100%); padding: 40px 30px; text-align: center;">
+                            <h1 style="margin: 0; font-size: 28px; font-weight: 600; color: #ffffff;">Confirmação de Reserva</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #333333; font-size: 22px; font-weight: 600; margin: 0 0 15px 0;">Prezado(a) {{appointment.customer.full_name}},</h2>
+                            <p style="color: #666666; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0;">
+                                Segue o email para confirmação da sua reserva. Por favor, verifique os detalhes abaixo e realize o pagamento para garantir sua reserva.
+                            </p>
+
+                            <!-- Detalhes do Agendamento -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #f9fafb; border-radius: 10px; margin: 25px 0;">
+                                <tr>
+                                    <td style="padding: 25px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                                    <span style="color: #6b7280; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Estabelecimento</span>
+                                                </td>
+                                                <td align="right" style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                                    <span style="color: #111827; font-size: 16px; font-weight: 600;">{{appointment.location.name}}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                                    <span style="color: #6b7280; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Data e Hora</span>
+                                                </td>
+                                                <td align="right" style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                                    <span style="color: #111827; font-size: 16px; font-weight: 600;">{{appointment.start_at}}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                                    <span style="color: #6b7280; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Número de Pessoas</span>
+                                                </td>
+                                                <td align="right" style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                                    <span style="color: #111827; font-size: 16px; font-weight: 600;">{{appointment.number_people}}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                                    <span style="color: #6b7280; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Valor Total</span>
+                                                </td>
+                                                <td align="right" style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                                                    <span style="color: #667eea; font-size: 20px; font-weight: 600;">R$ {{appointment.price}}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0;">
+                                                    <span style="color: #6b7280; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Forma de Pagamento</span>
+                                                </td>
+                                                <td align="right" style="padding: 12px 0;">
+                                                    <span style="color: #111827; font-size: 16px; font-weight: 600;">{{appointment.get_payment_method_display}}</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Endereço do Local -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 25px 0;">
+                                <tr>
+                                    <td>
+                                        <h3 style="color: #333333; font-size: 18px; font-weight: 600; margin: 0 0 15px 0;">Endereço do Local</h3>
+                                        <p style="color: #666666; font-size: 15px; line-height: 1.7; margin: 0;">
+                                            <strong>{{appointment.location.adress}}, {{appointment.location.number}}</strong><br>
+                                            {{appointment.location.city}} - {{appointment.location.state}}<br>
+                                            CEP: {{appointment.location.cep}}
+                                        </p>
+                                        <p style="margin: 15px 0 0 0;">
+                                            <a href="https://www.google.com/maps/search/?api=1&query={{ appointment.location.adress|urlencode }}%2C%20{{ appointment.location.number }}%2C%20{{ appointment.location.city|urlencode }}%20-%20{{ appointment.location.state|urlencode }}%2C%20{{ appointment.location.cep }}" style="color: #667eea; text-decoration: none; font-size: 15px; font-weight: 500;">Abrir no Google Maps</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Aviso -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #fef9c3; border-left: 4px solid #f59e0b; margin: 25px 0; border-radius: 4px;">
+                                <tr>
+                                    <td style="padding: 15px 20px;">
+                                        <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.5;">
+                                            <strong>Importante:</strong> Caso haja cancelamento o mesmo deve ser realizado com até 24 horas de antecedência.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Botão de Pagamento -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 35px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{link_stripe}}" style="display: inline-block; background: linear-gradient(180deg, #111827 0%, #1f2937 100%); color: #ffffff; text-decoration: none; padding: 16px 50px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">Pagar Reserva</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+                            <p style="color: #6b7280; font-size: 14px; margin: 5px 0;"><strong>Precisa de ajuda?</strong></p>
+                            <p style="color: #6b7280; font-size: 14px; margin: 5px 0;">
+                                Entre em contato: <a href="mailto:contato@globalhost.app.br" style="color: #667eea; text-decoration: none;">contato@globalhost.app.br</a>
+                            </p>            
+
+                            <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
+                                © 2026 Globalhost. Todos os direitos reservados.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -9,6 +9,13 @@ db.sqlite3
 /djangoapp/project/local_settings.py
 /data/
 
+# Database
+data/postgres/data/
+
+# Static and media files
+data/web/static/
+data/web/media/
+
 # Logs
 /logs
 

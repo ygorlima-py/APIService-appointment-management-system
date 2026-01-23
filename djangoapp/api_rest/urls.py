@@ -18,7 +18,7 @@ urlpatterns = [
     path('dashboard/daily-summary/', views.DashbordsView.as_view(), name='dashboard'),
 
     # URL For checkout stripe 
-    path('payments/checkout', views.CreateCheckoutSession.as_view(), name='checkout'),
+    path('payments/checkout/<int:pk>/', views.CreateCheckoutSession.as_view(), name='checkout'),
     path("success/", views.SuccessView.as_view(), name="success"),
     path("cancel/", views.CancelView.as_view(), name="cancel"),
 

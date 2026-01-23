@@ -78,6 +78,9 @@ class Appointment(models.Model):
     observation = models.TextField(max_length=500, null=True, blank=True)
     number_people = models.IntegerField(default=1)
 
+    def __str__(self) -> str:
+        return f"Agendamento de {self.customer.full_name}"
+
     def save(self, *args, **kwargs):
         self.full_clean() # > call all verify
         return super().save(*args, **kwargs)

@@ -7,8 +7,8 @@ services:
         - 127.0.0.1:8001:8000
         volumes:
         - ./djangoapp:/djangoapp
-        - static_volume:/data/web/static/
-        - media_volume:/data/web/media/
+        - ./data/web/static:/data/web/static
+        - /data/web/media:/data/web/media
         env_file:
         - ./dotenv_files/.env
         depends_on:
@@ -20,7 +20,4 @@ services:
         - ./data/postgres/data:/var/lib/postgresql/data/
         env_file:
         - ./dotenv_files/.env
-
-volumes:
-  static_volume:
-  media_volume:
+        restart: unless-stopped  

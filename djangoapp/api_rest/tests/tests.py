@@ -7,6 +7,8 @@ from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from .mixins import AuthenticatedTestMixin
+from api_rest.services.send_email import send_email
+from django.core import mail
 
 User = get_user_model()
 
@@ -327,5 +329,10 @@ class RegisterUserTest(AuthenticatedTestMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 1)
 
+class SendEmailTest(TestCase):
 
+    def test_send_email(self):
+        response = send_email()
+        self.assertEqual(len(mail.outbox), 1)
+    
         
