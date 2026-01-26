@@ -5,6 +5,7 @@ from django.views.generic import TemplateView
 from rest_framework import permissions
 from django.contrib.auth import get_user_model 
 from django.views import View
+from django.shortcuts import redirect
 from django.http import HttpResponse
 from .models import Customer, Appointment, UserPayment, Establishment
 from .serializers import (CustomerSerializer,
@@ -25,7 +26,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from .services.send_email import send_email
 from decimal import Decimal, ROUND_HALF_UP
+from django.shortcuts import get_object_or_404
 import os
+import uuid
 
 User = get_user_model()
 DOMAIN = os.getenv("DOMAIN")
@@ -51,13 +54,17 @@ class RegisterUser(APIView):
         return Response(serializer.data)
 
 class UpdateUser(UpdateAPIView):
-    queryset = User.objects.all()
     serializer_class = UpdateUserSerializers
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return self.request.user
-    
+        return self.request.user.establishments
+
+class UpdateEstablishment(UpdateAPIView):
+    serializer_class = RegisterEstablishmentSerializer
+
+    def get_object(self):
+        return self.request.user.establishments.first()
 
 class UserTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
@@ -222,7 +229,6 @@ class DashbordsView(APIView):
 class CreateCheckoutSession(APIView):
 
     def get(self, request, pk):   
-        stripe.api_key = settings.STRIPE_SECRET_KEY
         
         try:
             appointment = Appointment.objects.get(id=pk)
@@ -239,6 +245,7 @@ class CreateCheckoutSession(APIView):
         customer = appointment.customer
         unit_amount = int((Decimal(str(appointment.price)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
+        stripe.api_key = settings.STRIPE_SECRET_KEY
         # Crete page in stripe for payment
         session = stripe.checkout.Session.create(
             mode="payment",
@@ -256,6 +263,9 @@ class CreateCheckoutSession(APIView):
             ],
             success_url=f"{DOMAIN}/api/success",
             cancel_url=f"{DOMAIN}/api/cancel",
+            payment_intent_data={
+                "transfer_data": {"destination": appointmen.location.stripe_account_id}
+            }
         )
 
 
@@ -289,10 +299,90 @@ class CancelView(TemplateView):
     template_name = "cancel_checkout.html"
     
 class RegisterEstablishment(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+
     serializer_class = RegisterEstablishmentSerializer
     
     def get_queryset(self):
         return Establishment.objects.filter(owner=self.request.user)
-    
 
+class EstablishmentStripeConnect(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request, pk):
+        establishment = get_object_or_404(Establishment, pk=pk, owner=request.user)
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        if not establishment.stripe_account_id:
+            account = stripe.Account.create(
+                type="standard",
+                country="BR",
+                email=request.user.email,
+                business_profile={
+                    "name": establishment.name,
+                },
+                capabilities = {
+                    "card_payments": {"requested": True},
+                    "transfers": {"requested": True},
+                }
+            )
+
+            establishment.stripe_account_id = account["id"]
+            establishment.save(update_fields=["stripe_account_id"])
+
+            establishment.stripe_onboarding_token = uuid.uuid4()
+            establishment.save(update_fields=["stripe_onboarding_token"])
+
+        account_link = stripe.AccountLink.create(
+            account=establishment.stripe_account_id,
+            refresh_url=f"{DOMAIN}/api/stripe/connect/refresh?state={establishment.stripe_onboarding_token}",
+            return_url=f"{DOMAIN}/api/stripe/connect/return?state={establishment.stripe_onboarding_token}",
+            type="account_onboarding",
+        )
+
+        return Response({"url": account_link["url"]}, status=status.HTTP_200_OK)
+
+class StripeConnectRefresh(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        token = request.query_params.get("state")
+        establishment = get_object_or_404(Establishment, stripe_onboarding_token=token)
+        
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        account_link = stripe.AccountLink.create(
+            account=establishment.stripe_account_id,
+            refresh_url=f"{DOMAIN}/api/stripe/connect/refresh?state={establishment.stripe_onboarding_token}",
+            return_url=f"{DOMAIN}/api/stripe/connect/return?state={establishment.stripe_onboarding_token}",
+            type="account_onboarding",
+        )
+
+        return redirect(account_link['url'])
+
+class StripeConnectReturn(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        token = request.query_params.get("state")
+        establishment = get_object_or_404(Establishment, stripe_onboarding_token=token)
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        account = stripe.Account.retrieve(establishment.stripe_account_id)
+
+        print("requirements.currently_due:", account["requirements"]["currently_due"])
+        print("requirements.past_due:", account["requirements"]["past_due"])
+        print("requirements.pending_verification:", account["requirements"]["pending_verification"])
+        print("disabled_reason:", account.get("requirements", {}).get("disabled_reason"))
+
+        establishment.stripe_charges_enabled = bool(account["charges_enabled"])
+        establishment.stripe_payouts_enabled = bool(account["payouts_enabled"])
+        establishment.stripe_details_submitted = bool(account["details_submitted"])
+        establishment.stripe_onboarding_token = None
+        establishment.save(update_fields=[
+            "stripe_charges_enabled",
+            "stripe_payouts_enabled",
+            "stripe_details_submitted",
+            "stripe_onboarding_token",
+        ])
+
+        return redirect("api_rest:success")

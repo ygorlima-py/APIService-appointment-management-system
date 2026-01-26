@@ -18,12 +18,16 @@ urlpatterns = [
     # URL For dashbords www.yourdomain.com/api/dashboard/daily-summary/q=date
     path('dashboard/daily-summary/', views.DashbordsView.as_view(), name='dashboard'),
 
-    # URL For checkout stripe 
+    # URL stripe 
     path('payments/checkout/<int:pk>/', views.CreateCheckoutSession.as_view(), name='checkout'),
     path("success/", views.SuccessView.as_view(), name="success"),
     path("cancel/", views.CancelView.as_view(), name="cancel"),
+    path("stripe/connect/refresh/", views.StripeConnectRefresh.as_view(), name="connect_refresh"),
+    path("stripe/connect/return/", views.StripeConnectReturn.as_view(), name="connect_return"),
 
+    path('establishment/<int:pk>/stripe/connect', views.EstablishmentStripeConnect.as_view(), name='establishment_connect_stripe'),
     path('establishment/', views.RegisterEstablishment.as_view(), name='establishment'),
+    path('update_establishment/', views.UpdateEstablishment.as_view(), name='update_establishment'),
     path('login/', views.UserTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('refresh/', views.UserTokenRefreshView.as_view(), name='token_refresh'),
 

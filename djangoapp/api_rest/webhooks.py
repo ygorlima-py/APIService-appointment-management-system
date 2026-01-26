@@ -26,7 +26,7 @@ def stripe_webhook(request):
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         session_id = session["id"]
-        print("Cheguei Aqui")
+        
         payment = UserPayment.objects.filter(stripe_checkout_id=session_id).first()
         appointment = Appointment.objects.filter(pk=payment.appointment.id).first()
         

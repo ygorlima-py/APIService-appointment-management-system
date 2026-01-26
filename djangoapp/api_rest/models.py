@@ -7,25 +7,9 @@ User = get_user_model()
 
 # Create your models here.
 class Customer(models.Model):
-    full_name = models.CharField(
-        max_length=255,
-        null=False,
-        blank=False,
-    )
-
-    phone = models.CharField(
-        max_length=50,
-        null=False,
-        blank=False,
-    )
-
-    email = models.EmailField(
-        max_length=100,
-        null=False,
-        blank=False,
-        unique=True,
-    )
-
+    full_name = models.CharField(max_length=255, null=False, blank=False)
+    phone = models.CharField(max_length=50, null=False, blank=False)
+    email = models.EmailField(max_length=100, null=False, blank=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
@@ -44,6 +28,12 @@ class Establishment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+    stripe_onboarding_token = models.UUIDField(default=uuid.uuid4, blank=True, null=True)
+    stripe_account_id = models.CharField(max_length=255, null=True, blank=True)
+    stripe_charges_enabled = models.BooleanField(default=False)
+    stripe_payouts_enabled = models.BooleanField(default=False)
+    stripe_details_submitted = models.BooleanField(default=False)
+
 
     def __str__(self) -> str:
         return f"{self.name}"
@@ -59,16 +49,8 @@ class Appointment(models.Model):
         PIX = "PIX", "Pix"
         CARD = "CARD", "Cartão de crédito"
     
-    customer = models.ForeignKey(
-            Customer,
-            on_delete=models.CASCADE,
-            related_name="appoinments",
-            )    
-    location = models.ForeignKey(
-        Establishment,
-        on_delete=models.CASCADE,
-        related_name="appointments"
-        )  
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="appoinments")    
+    location = models.ForeignKey(Establishment, on_delete=models.CASCADE, related_name="appointments")  
     start_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(choices=Status.choices)
     price = models.DecimalField(decimal_places=2, max_digits=10)
