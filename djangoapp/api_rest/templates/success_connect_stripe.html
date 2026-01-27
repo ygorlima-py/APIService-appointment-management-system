@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integração Bem Sucedida</title>
+    <link rel="stylesheet" href="{% static "/css/style.css" %}">
+</head>
+<body>
+    <div class="card">
+        <div class="icon-container">
+            <div class="check-circle">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+
+        <h1>Integração Realizada com Sucesso</h1>
+        <p class="subtitle">
+            Sua integração com a Stripe foi concluída com sucesso!
+            Agora é só aguardar a verificação de identidade pela Stripe (geralmente leva de algumas horas até 48 horas).
+            Você pode receber um e-mail do Stripe pedindo upload de documento e selfie, se necessário.
+            Assim que a verificação for aprovada, sua conta estará 100% liberada para receber pagamentos e repasses.
+        </p>
+        <tr>
+            <td style="background: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+                <p style="color: #6b7280; font-size: 14px; margin: 5px 0;">
+                    Acompanhe o status de verificação de identidade em: <a href="https://dashboard.stripe.com/login" style="color: #667eea; text-decoration: none;">dashboard.stripe.com/login</a>
+                </p>            
+
+                <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
+                    © 2026 Globalhost. Todos os direitos reservados.
+                </p>
+            </td>
+        </tr>
+    </div>
+</body>
+</html>

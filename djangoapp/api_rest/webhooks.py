@@ -2,7 +2,8 @@ import stripe
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import UserPayment, Appointment
+from .models import UserPayment, Appointment, Establishment
+from django.shortcuts import get_object_or_404
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -36,6 +37,20 @@ def stripe_webhook(request):
 
             appointment.status = 'CONFIRMED'
             appointment.save(update_fields=["status"])
+    
+    # Verify if event is update account
+    elif event["type"] == "account.updated":
+        account = event["data"]["object"] # Get event information
+        establishment = get_object_or_404(Establishment, stripe_account_id=account["id"]) # Get establishment by stripe_account_id 
+
+        establishment.stripe_charges_enabled = bool(account["charges_enabled"])
+        establishment.stripe_payouts_enabled = bool(account["payouts_enabled"])
+        establishment.stripe_details_submitted = bool(account["details_submitted"])
+        establishment.save(update_fields=[
+            "stripe_charges_enabled",
+            "stripe_payouts_enabled",
+            "stripe_details_submitted",
+        ])
 
     return HttpResponse(status=200)
 

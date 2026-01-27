@@ -21,6 +21,7 @@ urlpatterns = [
     # URL stripe 
     path('payments/checkout/<int:pk>/', views.CreateCheckoutSession.as_view(), name='checkout'),
     path("success/", views.SuccessView.as_view(), name="success"),
+    path("success_connect_stripe/", views.StripeTemplateConnectSuccessful.as_view(), name="success_connect_stripe"),
     path("cancel/", views.CancelView.as_view(), name="cancel"),
     path("stripe/connect/refresh/", views.StripeConnectRefresh.as_view(), name="connect_refresh"),
     path("stripe/connect/return/", views.StripeConnectReturn.as_view(), name="connect_return"),

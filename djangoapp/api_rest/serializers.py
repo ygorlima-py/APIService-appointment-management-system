@@ -10,6 +10,8 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = "__all__"
 
+        
+
 class AppointmentSerializer(serializers.ModelSerializer):
     status = serializers.CharField(default="SCHEDULED")
     status_label = serializers.CharField(source="get_status_display", read_only=True)
@@ -124,7 +126,6 @@ class UpdateUserSerializers(serializers.ModelSerializer):
             instance.set_password(password)
             instance.save()
         return instance
-
 
 class RegisterEstablishmentSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())

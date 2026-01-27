@@ -232,10 +232,21 @@ class CreateCheckoutSession(APIView):
         
         try:
             appointment = Appointment.objects.get(id=pk)
+            establishment = get_object_or_404(Establishment, location=appointment)
 
         except Appointment.DoesNotExist:
             raise status.HTTP_404_NOT_FOUND
-        
+
+        if not establishment.stripe_details_submitted:
+            return Response({
+                'message': 'Sua conta não está integrada com a Stripe, acesse configurações e clique em integrar com a stripe',
+            })
+
+        elif not (establishment.stripe_charges_enabled and establishment.stripe_payouts_enabled):
+            return Response({
+                'message': 'Sua conta esta pendente de verificação pela de identidade pela Stripe, pode levar até 48h',
+            })
+
         if UserPayment.objects.filter(appointment=appointment).exists():
             return Response({
                 'message': 'este agendamento ja foi enviado para pagamento. Solicite ao cliente para verificar sua caixa de email',
@@ -264,7 +275,7 @@ class CreateCheckoutSession(APIView):
             success_url=f"{DOMAIN}/api/success",
             cancel_url=f"{DOMAIN}/api/cancel",
             payment_intent_data={
-                "transfer_data": {"destination": appointmen.location.stripe_account_id}
+                "transfer_data": {"destination": establishment.stripe_account_id}
             }
         )
 
@@ -315,7 +326,7 @@ class EstablishmentStripeConnect(APIView):
         stripe.api_key = settings.STRIPE_SECRET_KEY
         if not establishment.stripe_account_id:
             account = stripe.Account.create(
-                type="standard",
+                type="express",
                 country="BR",
                 email=request.user.email,
                 business_profile={
@@ -385,4 +396,7 @@ class StripeConnectReturn(APIView):
             "stripe_onboarding_token",
         ])
 
-        return redirect("api_rest:success")
+        return redirect("api_rest:success_connect_stripe")
+
+class StripeTemplateConnectSuccessful(TemplateView):
+    template_name = "success_connect_stripe.html"

@@ -59,7 +59,7 @@
     "django-html": "html"
   },
   "files.associations": {
-    "*.html": "django-html"
+    "*.html": "bat"
   },
 
   "python-envs.defaultEnvManager": "ms-python.python:system",
