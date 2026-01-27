@@ -119,11 +119,11 @@ class UserTokenObtainPairView(TokenObtainPairView):
 # POST /api/customers/
 # GET /api/customers/ (List using search terms like ?q= by full_name/phone/email)
 class Customers(ListCreateAPIView):
-    queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = Customer.objects.filter(created_by=self.request.user)
         q = self.request.query_params.get("q")
 
         if q:
@@ -146,8 +146,12 @@ class Customers(ListCreateAPIView):
 # PATCH /api/customers/id
 # DELET /api/customers/id
 class CustomerDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = Customer.objects.all()
+    model = Customer
     serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Customers.objects.filter(created_by=self.request.user)
 
 class FilterAppointmentByCustomer(ListAPIView):
     serializer_class = AppointmentSerializer
@@ -159,12 +163,12 @@ class FilterAppointmentByCustomer(ListAPIView):
 # POST /api/appointment/
 # GET /api/appointment/ (List using search terms like ?q= by start_at/end_at/customer_id/status)
 class Appointments(ListCreateAPIView):
-    queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated]
 
     permission_classes = (IsAuthenticated,)
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = Appointment.objects.filter(created_by=self.request.user)
         q = self.request.query_params.get("q")
 
         if q:
@@ -182,8 +186,11 @@ class Appointments(ListCreateAPIView):
 # PATCH /api/appointment/id
 # DELET /api/appointment/id
 class AppointmentDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = Appointment.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = AppointmentSerializer
+
+    def get_queryset(self):
+        return Appointment.objects.filter(created_by=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
         obj = self.get_object()

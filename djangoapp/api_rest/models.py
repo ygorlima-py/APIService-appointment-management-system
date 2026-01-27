@@ -7,10 +7,11 @@ User = get_user_model()
 
 # Create your models here.
 class Customer(models.Model):
-    full_name = models.CharField(max_length=255, null=False, blank=False)
-    phone = models.CharField(max_length=50, null=False, blank=False)
-    email = models.EmailField(max_length=100, null=False, blank=False, unique=True)
+    full_name = models.CharField(max_length=255, null=False, blank=False,)
+    phone = models.CharField(max_length=50, null=False, blank=False,)
+    email = models.EmailField(max_length=100, null=False, blank=False,)
     created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customers", blank=True, null=True)
 
     def __str__(self) -> str:
         return f"{self.full_name}"
@@ -59,6 +60,8 @@ class Appointment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     observation = models.TextField(max_length=500, null=True, blank=True)
     number_people = models.IntegerField(default=1)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="appointments", blank=True, null=True)
+
 
     def __str__(self) -> str:
         return f"Agendamento de {self.customer.full_name}"

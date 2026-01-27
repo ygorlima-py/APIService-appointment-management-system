@@ -6,13 +6,13 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class CustomerSerializer(serializers.ModelSerializer):
+    created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
     class Meta:
         model = Customer
         fields = "__all__"
 
-        
-
 class AppointmentSerializer(serializers.ModelSerializer):
+    created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
     status = serializers.CharField(default="SCHEDULED")
     status_label = serializers.CharField(source="get_status_display", read_only=True)
     customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), write_only=True, source="customer", required=False)
@@ -31,7 +31,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             "location_id", "location_name", 
             "status","status_label",
             "observation", "created_at",
-            "updated_at",
+            "updated_at","created_by",
             ]
 
     def create(self, validated_data):
