@@ -15,6 +15,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
     created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
     status = serializers.CharField(default="SCHEDULED")
     status_label = serializers.CharField(source="get_status_display", read_only=True)
+    customer_id_value = serializers.ReadOnlyField(source="customer.id")
     customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), write_only=True, source="customer", required=False)
     customer_name = serializers.CharField(source="customer.full_name", read_only=True)
     location_name = serializers.CharField(source="location.name", read_only=True)
@@ -27,6 +28,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             "id", "start_at",
             "number_people","payment_method",
             "payment_method_label", "customer_id",
+            "customer_id_value",
             "customer_name", "price",
             "location_id", "location_name", 
             "status","status_label",

@@ -327,7 +327,8 @@ class RegisterEstablishment(ListCreateAPIView):
 class EstablishmentStripeConnect(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, pk):
+    def get(self, request):
+        pk = request.query_params.get("establishment_id")
         establishment = get_object_or_404(Establishment, pk=pk, owner=request.user)
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
