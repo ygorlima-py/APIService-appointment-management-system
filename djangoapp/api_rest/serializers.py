@@ -136,3 +136,33 @@ class RegisterEstablishmentSerializer(serializers.ModelSerializer):
         model = Establishment
         fields = "__all__"
         read_only_fields = ["id"]
+
+class AuthPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField(write_only=True)
+
+class AuthPasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField(write_only=True)
+    token = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8, required=True)
+    password_confirm = serializers.CharField(write_only=True, required=True)
+
+    def validate(self, data):
+        password = data.get('password')
+        password_confirm = data.get('password_confirm')
+        # Trata string vazia como "não enviado"
+        if password == "":
+            password = None
+            data['password'] = None
+
+        if password_confirm == "":
+            password_confirm = None
+            data['password_confirm'] = None
+
+        # Atualização: só valide se algum foi enviado
+        if password or password_confirm:
+            if not password or not password_confirm:
+                raise serializers.ValidationError({'password': 'Envie password e password_confirm'})
+            if password != password_confirm:
+                raise serializers.ValidationError({'password': 'As senhas não coincidem'})
+
+        return data

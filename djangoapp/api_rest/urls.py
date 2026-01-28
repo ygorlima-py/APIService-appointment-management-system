@@ -6,6 +6,11 @@ app_name = 'api_rest'
 urlpatterns = [
     path('register/', views.RegisterUser.as_view(), name='register'),
     path('update_user/', views.UpdateUser.as_view(), name='update_user'),
+    path('login/', views.UserTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('refresh/', views.UserTokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/password-reset/', views.AuthPasswordReset.as_view(), name='auth_apssword_reset'),
+    path('auth/password-reset/confirm', views.AuthPasswordResetConfirm.as_view(), name='auth_apssword_reset_confirm'),
+
 
     # URL For customera www.yourdomain.com/api/customer
     path('customer/', views.Customers.as_view(), name='customers'),
@@ -29,8 +34,7 @@ urlpatterns = [
     path('establishment/stripe/connect/', views.EstablishmentStripeConnect.as_view(), name='establishment_connect_stripe'),
     path('establishment/', views.RegisterEstablishment.as_view(), name='establishment'),
     path('update_establishment/', views.UpdateEstablishment.as_view(), name='update_establishment'),
-    path('login/', views.UserTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('refresh/', views.UserTokenRefreshView.as_view(), name='token_refresh'),
+
 
     path('filter-appointment-customer/<int:customer_id>/', views.FilterAppointmentByCustomer.as_view(), name='filter_appointment')
 ]

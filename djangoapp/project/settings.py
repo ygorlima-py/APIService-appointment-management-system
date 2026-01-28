@@ -42,6 +42,7 @@ CSRF_TRUSTED_ORIGINS = [
     if h.strip()
     ]
 
+PASSWORD_RESET_TIMEOUT = 60 * 60 
 
 # Application definition
 

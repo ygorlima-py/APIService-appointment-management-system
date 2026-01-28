@@ -12,7 +12,9 @@ from .serializers import (CustomerSerializer,
                         AppointmentSerializer,
                         UserRegistrationSerializer,
                         RegisterEstablishmentSerializer,
-                        UpdateUserSerializers
+                        UpdateUserSerializers,
+                        AuthPasswordResetSerializer,
+                        AuthPasswordResetConfirmSerializer,
                         )
 from django.db.models import Q, Count, Sum
 from datetime import date as date_cls
@@ -24,14 +26,19 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from .services.send_email import send_email
+from .services.send_email import send_email, send_email_reset_password
 from decimal import Decimal, ROUND_HALF_UP
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+
 import os
 import uuid
 
 User = get_user_model()
 DOMAIN = os.getenv("DOMAIN")
+DOMAIN_FRONT_END = os.getenv("DOMAIN_FRONT_END")
 
 class RegisterUser(APIView):
     serializer_class = UserRegistrationSerializer
@@ -408,3 +415,74 @@ class StripeConnectReturn(APIView):
 
 class StripeTemplateConnectSuccessful(TemplateView):
     template_name = "success_connect_stripe.html"
+
+class AuthPasswordReset(APIView):
+    serializer_class = AuthPasswordResetSerializer
+    permission_classes = [AllowAny]
+    def post(self, request):
+        data = request.data
+        
+        serializer = self.serializer_class(data=data)
+
+        # Verify with serializer if data is valid
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get email after been validated
+        email = serializer.validated_data["email"]
+
+        # Verify if user exists with email, if false, send 
+        if not User.objects.filter(email=email).exists():
+            return Response({"message": "Foi enviado um email com link de recuperação de senha para o usuário cadastrado na plataforma"})
+
+        # Get user instance with email
+        user = User.objects.filter(email=email).first()
+
+        # Generate UUID with id user
+        uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+
+        # Generate Token with instance user:
+        token = default_token_generator.make_token(user)
+
+        # Generate link frontEnd with token and uid
+        link_front_end = f"{DOMAIN_FRONT_END}/pages/change_password.html?uid={uidb64}&token={token}"
+
+        send_email_reset_password(link_front_end, user)
+
+        return Response({"message": "Foi enviado um email com link de recuperação de senha para o usuário cadastrado na plataforma"})
+
+class AuthPasswordResetConfirm(APIView): 
+    permission_classes = [AllowAny]
+    serializer_class = AuthPasswordResetConfirmSerializer
+    
+    def post(self, request):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+
+        if not serializer.is_valid():
+            return Response({"message": "Senha inválida"}, status=status.HTTP_400_BAD_REQUEST)
+
+        uid = serializer.validated_data["uid"]
+        token = serializer.validated_data["token"]
+        password = serializer.validated_data["password"]
+
+        # Convert uid to id
+        pk = urlsafe_base64_decode(uid)
+
+        # get user in databas by id
+        user = get_object_or_404(User, pk=pk)
+        
+        # Verify if token is valid
+        if not default_token_generator.check_token(user, token):
+            return Response({"message": "Token inválido"})
+
+        # Change password in database
+        user.set_password(password)
+        user.save(update_fields=["password"])
+
+        print(user.pk)
+        print(user.check_password(password))
+
+        return Response({"message": "Senha Atualizada com Sucesso"})
+        
+
