@@ -66,7 +66,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',  
+        'rest_framework.permissions.AllowAny',  
     ],
 }
 
@@ -197,7 +197,7 @@ SIMPLE_JWT = {
     'AUTH_COOKIE': 'refresh_token',  # Nome do cookie
     'AUTH_COOKIE_HTTP_ONLY': True,
     'AUTH_COOKIE_SECURE': True if not DEBUG else False,  # Secure em produção (HTTPS), False em localhost (HTTP)
-    'AUTH_COOKIE_SAMESITE': 'Lax',  # Ou 'Strict' para mais segurança
+    'AUTH_COOKIE_SAMESITE': 'None',  # Ou 'Strict' para mais segurança
 }
 
 # Settings e-mail
