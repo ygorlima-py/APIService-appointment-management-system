@@ -44,18 +44,28 @@ class RegisterUser(APIView):
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
-
     # Create Refresh token
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+
         refresh = RefreshToken.for_user(user)
-        data = UserRegistrationSerializer(user).data
-        data['refresh'] = str(refresh)
-        data['access'] = str(refresh.access_token)
-        return Response(data, status=status.HTTP_201_CREATED)
-    
+        access = str(refresh.access_token)
+        refresh_str = str(refresh)
+        response =  Response({"access": access}, status=status.HTTP_201_CREATED)
+
+        response.set_cookie(
+            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+            value=refresh,
+            httponly=True,
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+            max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
+            path="/",            
+        )
+        return response
+
     def get(self, request):
         serializer = UserRegistrationSerializer(request.user)
         return Response(serializer.data)
@@ -69,12 +79,18 @@ class UpdateUser(UpdateAPIView):
 
 class UpdateEstablishment(UpdateAPIView):
     serializer_class = RegisterEstablishmentSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user.establishments.first()
 
 class UserTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
+        origin = request.headers.get("Origin")
+        if origin and origin not in settings.ALLOWED_REFRESH_ORIGINS:
+            print(settings.ALLOWED_REFRESH_ORIGINS)
+            return Response({"detail": "Invalid origin"}, status=status.HTTP_403_FORBIDDEN)
+
         # Get refresh's cookie
         refresh_token = request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"])
         if not refresh_token:
@@ -103,6 +119,10 @@ class UserTokenRefreshView(TokenRefreshView):
 # Nesta view geramos os tokens, definimos os cookies HttpOnly para refresh e retorna apenas o access no JSON
 class UserTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
+        origin = request.headers.get("Origin")
+        if origin and origin not in settings.ALLOWED_REFRESH_ORIGINS:
+            return Response({"detail": "Invalid origin"}, status=status.HTTP_403_FORBIDDEN)
+
         response = super().post(request,*args, **kwargs)
 
         if response.status_code == status.HTTP_200_OK:
@@ -122,7 +142,18 @@ class UserTokenObtainPairView(TokenObtainPairView):
                 path="/",              
             )      
         return response
-        
+
+class LogOut(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        response = Response({"message": "logout successful"}, status=status.HTTP_200_OK)
+        response.delete_cookie(
+            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+            path="/"
+        )
+        return response
+
 # POST /api/customers/
 # GET /api/customers/ (List using search terms like ?q= by full_name/phone/email)
 class Customers(ListCreateAPIView):
@@ -162,6 +193,7 @@ class CustomerDetailView(RetrieveUpdateDestroyAPIView):
 
 class FilterAppointmentByCustomer(ListAPIView):
     serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         customer_id = self.kwargs["customer_id"]
@@ -206,6 +238,7 @@ class AppointmentDetailView(RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class DashbordsView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):  
         
         date = self.request.query_params.get("date")
@@ -241,7 +274,7 @@ class DashbordsView(APIView):
         return Response(result)
     
 class CreateCheckoutSession(APIView):
-
+    permission_classes = [IsAuthenticated]
     def get(self, request, pk):   
         
         try:

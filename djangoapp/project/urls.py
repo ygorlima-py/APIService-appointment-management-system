@@ -23,7 +23,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/0b44550ed4c2f084a62809d3f46d3399/', admin.site.urls),
     path('api/', include('api_rest.urls'), name="api_rest_urls"),
     path("stripe/webhook/", stripe_webhook,  name="stripe-webhook"),
 ]

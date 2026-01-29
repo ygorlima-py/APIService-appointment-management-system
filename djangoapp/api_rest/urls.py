@@ -10,7 +10,7 @@ urlpatterns = [
     path('refresh/', views.UserTokenRefreshView.as_view(), name='token_refresh'),
     path('auth/password-reset/', views.AuthPasswordReset.as_view(), name='auth_apssword_reset'),
     path('auth/password-reset/confirm', views.AuthPasswordResetConfirm.as_view(), name='auth_apssword_reset_confirm'),
-
+    path("logout/", views.LogOut.as_view(), name="logout"),
 
     # URL For customera www.yourdomain.com/api/customer
     path('customer/', views.Customers.as_view(), name='customers'),
@@ -34,7 +34,6 @@ urlpatterns = [
     path('establishment/stripe/connect/', views.EstablishmentStripeConnect.as_view(), name='establishment_connect_stripe'),
     path('establishment/', views.RegisterEstablishment.as_view(), name='establishment'),
     path('update_establishment/', views.UpdateEstablishment.as_view(), name='update_establishment'),
-
 
     path('filter-appointment-customer/<int:customer_id>/', views.FilterAppointmentByCustomer.as_view(), name='filter_appointment')
 ]
