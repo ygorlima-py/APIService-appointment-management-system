@@ -189,7 +189,7 @@ class CustomerDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Customers.objects.filter(created_by=self.request.user)
+        return Customer.objects.filter(created_by=self.request.user)
 
 class FilterAppointmentByCustomer(ListAPIView):
     serializer_class = AppointmentSerializer
@@ -337,7 +337,7 @@ class EstablishmentStripeConnect(APIView):
         establishment = get_object_or_404(Establishment, pk=pk, owner=request.user)
         
         if (establishment.stripe_charges_enabled and establishment.stripe_payouts_enabled):
-            return Response({"message": "Você já está conectado com a stripe"})
+            return Response({"message": "Você já está conectado com a stripe", "url": f"{DOMAIN}/pages/customers"})
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
         if not establishment.stripe_account_id:
