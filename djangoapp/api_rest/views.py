@@ -335,6 +335,9 @@ class EstablishmentStripeConnect(APIView):
     def get(self, request):
         pk = request.query_params.get("establishment_id")
         establishment = get_object_or_404(Establishment, pk=pk, owner=request.user)
+        
+        if (establishment.stripe_charges_enabled and stripe.stripe_payouts_enabled):
+            return Response({"message": "Você já está conectado com a stripe"})
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
         if not establishment.stripe_account_id:
