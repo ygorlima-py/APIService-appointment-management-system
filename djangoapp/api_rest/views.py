@@ -237,41 +237,6 @@ class AppointmentDetailView(RetrieveUpdateDestroyAPIView):
         obj.save(update_fields=["status"])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class DashbordsView(APIView):
-    permission_classes = [IsAuthenticated]
-    def get(self, request):  
-        
-        date = self.request.query_params.get("date")
-        
-        if not date:
-            return Response({"detail": "put ?date=YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            day = date_cls.fromisoformat(date)
-
-        except ValueError:
-            return Response({"detail": "Invalid format. Use YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST)
-
-        qs = Appointment.objects.filter(start_at__date=day)
-
-        data = qs.filter(start_at__date=date).aggregate(
-            total=Count("id"),
-            scheduled=Count("id", filter=Q(status="SCHEDULED")),
-            canceled=Count("id", filter=Q(status="CANCELED")),
-            done=Count("id", filter=Q(status="DONE")),
-            total_price_done=Sum("price", filter=Q(status="DONE")),
-        )
-
-        result = dict(
-            date=date,
-            total_appointments=data["total"],
-            total_appointments_scheduled=data["scheduled"],
-            total_appointment_canceled=data["canceled"],
-            total_appointment_done=data["done"],
-            total_appointment_price_done=data["total_price_done"],
-        )
-
-        return Response(result)
     
 class CreateCheckoutSession(APIView):
     permission_classes = [IsAuthenticated]

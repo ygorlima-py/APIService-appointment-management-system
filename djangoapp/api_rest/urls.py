@@ -20,9 +20,6 @@ urlpatterns = [
     path('appointment/', views.Appointments.as_view(), name='appointment'),
     path('appointment/<int:pk>/', views.AppointmentDetailView.as_view(), name='appointment_detail_view'),
 
-    # URL For dashbords www.yourdomain.com/api/dashboard/daily-summary/q=date
-    path('dashboard/daily-summary/', views.DashbordsView.as_view(), name='dashboard'),
-
     # URL stripe 
     path('payments/checkout/<int:pk>/', views.CreateCheckoutSession.as_view(), name='checkout'),
     path("success/", views.SuccessView.as_view(), name="success"),

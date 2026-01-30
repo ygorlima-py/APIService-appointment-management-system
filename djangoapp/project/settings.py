@@ -73,6 +73,14 @@ SIMPLE_JWT = {
 
 PASSWORD_RESET_TIMEOUT = 60 * 60 
 
+AUTHENTICATION_BACKENDS = [
+    # AxesStandaloneBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
+    'axes.backends.AxesStandaloneBackend',
+
+    # Django ModelBackend is the default authentication backend.
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -86,7 +94,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'api_rest',
     'drf_spectacular',
-    
+
+    # Axes app can be in any position in the INSTALLED_APPS list.
+    'axes',   
 ]
 
 REST_FRAMEWORK = {
@@ -108,6 +118,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',
 ]
 
 SPECTACULAR_SETTINGS = {
@@ -214,3 +225,8 @@ EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
+AXES_ENABLED = True
+AXES_FAILURE_LIMIT = 4
+AXES_COOLOFF_TIME = 1  # 1 Hora
+AXES_RESET_ON_SUCCESS = True
