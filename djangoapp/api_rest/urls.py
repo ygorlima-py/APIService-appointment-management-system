@@ -27,6 +27,7 @@ urlpatterns = [
     path("cancel/", views.CancelView.as_view(), name="cancel"),
     path("stripe/connect/refresh/", views.StripeConnectRefresh.as_view(), name="connect_refresh"),
     path("stripe/connect/return/", views.StripeConnectReturn.as_view(), name="connect_return"),
+    path("stripe/status", views.StripeCheckStatusIntegration.as_view(), name="check_status_integration"),
 
     path('establishment/stripe/connect/', views.EstablishmentStripeConnect.as_view(), name='establishment_connect_stripe'),
     path('establishment/', views.RegisterEstablishment.as_view(), name='establishment'),

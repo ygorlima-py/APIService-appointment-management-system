@@ -337,7 +337,7 @@ class EstablishmentStripeConnect(APIView):
         establishment = get_object_or_404(Establishment, pk=pk, owner=request.user)
         
         if (establishment.stripe_charges_enabled and establishment.stripe_payouts_enabled):
-            return Response({"message": "Você já está conectado com a stripe", "url": f"{DOMAIN}/pages/customers"})
+            return Response({"message": "Você já está conectado com a stripe", "url": f"{DOMAIN}/pages/settings"})
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
         if not establishment.stripe_account_id:
@@ -486,4 +486,29 @@ class AuthPasswordResetConfirm(APIView):
 
         return Response({"message": "Senha Atualizada com Sucesso"})
         
+class StripeCheckStatusIntegration(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        user = request.user
+        establishment = get_object_or_404(Establishment, owner=user)
+        
+        if not establishment.stripe_details_submitted:
+            return Response(
+                {"status": "Desconetcado",
+                "connected": False,
+                },
+             status=status.HTTP_200_OK)
+        
+        elif not (establishment.stripe_charges_enabled and establishment.stripe_payouts_enabled):
+            return Response(
+                {"status": "Pendente",
+                "connected": False,
+                },
+             status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"status": "Conectado",
+                "connected": True,
+                },
+             status=status.HTTP_200_OK)
