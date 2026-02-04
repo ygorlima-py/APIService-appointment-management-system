@@ -4,9 +4,7 @@ from rest_framework.views import APIView
 from django.views.generic import TemplateView
 from rest_framework import permissions
 from django.contrib.auth import get_user_model 
-from django.views import View
 from django.shortcuts import redirect
-from django.http import HttpResponse
 from .models import Customer, Appointment, UserPayment, Establishment
 from .serializers import (CustomerSerializer,
                         AppointmentSerializer,
@@ -16,8 +14,7 @@ from .serializers import (CustomerSerializer,
                         AuthPasswordResetSerializer,
                         AuthPasswordResetConfirmSerializer,
                         )
-from django.db.models import Q, Count, Sum
-from datetime import date as date_cls
+from django.db.models import Q, Sum
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 import stripe
@@ -303,6 +300,7 @@ class CreateCheckoutSession(APIView):
             price=appointment.price,
             currency="brl",
             has_paid=False,
+            establishment=appointment.location,
         )
 
         url_checkout_stripe = session["url"]
@@ -495,20 +493,41 @@ class StripeCheckStatusIntegration(APIView):
         
         if not establishment.stripe_details_submitted:
             return Response(
-                {"status": "Desconetcado",
+                {
+                "status": "Desconetcado",
                 "connected": False,
+                "observation": "Você não está conectado a stripe, para se conectar clique no botão abaixo e preencha os dados",
                 },
-             status=status.HTTP_200_OK)
+                status=status.HTTP_200_OK,
+                )
         
         elif not (establishment.stripe_charges_enabled and establishment.stripe_payouts_enabled):
             return Response(
-                {"status": "Pendente",
+                {
+                "status": "Pendente",
                 "connected": False,
+                "observation": "Sua integração está pendente de confirmação, esse periodo pode levar de 24 a 48 horas",
                 },
-             status=status.HTTP_200_OK)
+                status=status.HTTP_200_OK,
+             )
         else:
             return Response(
-                {"status": "Conectado",
+                {
+                "status": "Conectado",
                 "connected": True,
+                "observation": "Sua conta está integrada a Strie",
                 },
-             status=status.HTTP_200_OK)
+             status=status.HTTP_200_OK,
+             )
+
+class StripeTotalPayments(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        user = request.user
+        payments_ammount = UserPayment.objects.filter(establishment__owner=user, has_paid=True).aggregate(total=Sum("price"))
+        print(payments_ammount)
+        if payments_ammount["total"] is None:
+            return Response({"total": 0}, status=status.HTTP_200_OK)
+        else:
+             return Response(payments_ammount, status=status.HTTP_200_OK)

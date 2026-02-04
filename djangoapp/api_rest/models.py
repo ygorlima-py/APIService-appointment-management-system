@@ -73,6 +73,7 @@ class Appointment(models.Model):
 class UserPayment(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
+    establishment = models.ForeignKey(Establishment, on_delete=models.CASCADE, null=True, blank=True)
     stripe_customer_id = models.CharField(max_length=255)
     stripe_checkout_id = models.CharField(max_length=255)
     stripe_product_id = models.CharField(max_length=255)
