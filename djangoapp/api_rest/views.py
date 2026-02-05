@@ -335,7 +335,7 @@ class EstablishmentStripeConnect(APIView):
         establishment = get_object_or_404(Establishment, pk=pk, owner=request.user)
         
         if (establishment.stripe_charges_enabled and establishment.stripe_payouts_enabled):
-            return Response({"message": "Você já está conectado com a stripe", "url": f"{DOMAIN}/pages/settings"})
+            return Response({"message": "Você já está conectado com a stripe", "connected": True})
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
         if not establishment.stripe_account_id:
@@ -365,7 +365,7 @@ class EstablishmentStripeConnect(APIView):
             type="account_onboarding",
         )
 
-        return Response({"url": account_link["url"]}, status=status.HTTP_200_OK)
+        return Response({"url": account_link["url"], "connected": False}, status=status.HTTP_200_OK)
 
 class StripeConnectRefresh(APIView):
     permission_classes = [IsAuthenticated]
