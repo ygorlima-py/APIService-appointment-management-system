@@ -72,7 +72,7 @@ class UpdateUser(UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return self.request.user.establishments
+        return self.request.user
 
 class UpdateEstablishment(UpdateAPIView):
     serializer_class = RegisterEstablishmentSerializer
