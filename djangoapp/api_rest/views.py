@@ -83,10 +83,11 @@ class UpdateEstablishment(UpdateAPIView):
 
 class UserTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-        origin = request.headers.get("Origin")
-        if origin and origin not in settings.ALLOWED_REFRESH_ORIGINS:
-            print(settings.ALLOWED_REFRESH_ORIGINS)
-            return Response({"detail": "Invalid origin"}, status=status.HTTP_403_FORBIDDEN)
+
+        # origin = request.headers.get("Origin")
+        # if origin and origin not in settings.ALLOWED_REFRESH_ORIGINS:
+        #     print(settings.ALLOWED_REFRESH_ORIGINS)
+        #     return Response({"detail": "Invalid origin"}, status=status.HTTP_403_FORBIDDEN)
 
         # Get refresh's cookie
         refresh_token = request.COOKIES.get(settings.SIMPLE_JWT["AUTH_COOKIE"])
@@ -116,9 +117,10 @@ class UserTokenRefreshView(TokenRefreshView):
 # Nesta view geramos os tokens, definimos os cookies HttpOnly para refresh e retorna apenas o access no JSON
 class UserTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
-        origin = request.headers.get("Origin")
-        if origin and origin not in settings.ALLOWED_REFRESH_ORIGINS:
-            return Response({"detail": "Invalid origin"}, status=status.HTTP_403_FORBIDDEN)
+
+        # origin = request.headers.get("Origin")
+        # if origin and origin not in settings.ALLOWED_REFRESH_ORIGINS:
+        #     return Response({"detail": "Invalid origin"}, status=status.HTTP_403_FORBIDDEN)
 
         response = super().post(request,*args, **kwargs)
 
@@ -241,7 +243,7 @@ class CreateCheckoutSession(APIView):
         
         try:
             appointment = Appointment.objects.get(id=pk)
-            establishment = get_object_or_404(Establishment, location=appointment)
+            establishment = appointment.location
 
         except Appointment.DoesNotExist:
             raise status.HTTP_404_NOT_FOUND
